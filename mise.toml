@@ -1,2 +1,15 @@
 [tools]
-node = { version = "lts", postinstall = "corepack enable" }
+## Stack
+rust = "latest"
+
+## Tools
+# Install Rust-based binaries instead of compiling
+cargo-binstall = "latest"
+
+[settings]
+# Enable extra features
+experimental = true
+# Enable cargo binstall
+cargo.binstall = true
+# Consume Rust toolchain settings from rust-toolchain.toml
+idiomatic_version_file_enable_tools = ["rust"]
