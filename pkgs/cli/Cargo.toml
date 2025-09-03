@@ -1,0 +1,12 @@
+[package]
+name = "xeval"
+version = "0.1.0"
+edition = "2024"
+description = "LLM evaluation framework"
+authors = ["Sasha Koss <koss@nocorp.me>"]
+license = "MIT"
+repository = "https://github.com/kossnocorp/xeval"
+
+[[bin]]
+name = "xeval"
+path = "src/main.rs"
