@@ -1,6 +1,7 @@
 [tools]
 ## Stack
 rust = "latest"
+node = { version = "latest", postinstall = "corepack enable" }
 
 ## Tools
 # Install Rust-based binaries instead of compiling
