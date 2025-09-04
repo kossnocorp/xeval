@@ -18,6 +18,9 @@ pub enum InitError {
     OpenAiAuth(#[from] OpenAiAuthError),
 
     #[error(transparent)]
+    Anyhow(#[from] anyhow::Error),
+
+    #[error(transparent)]
     Io(#[from] std::io::Error),
 }
 
@@ -38,18 +41,8 @@ impl InitCmd {
         println!("INIT with path={:?}, force={:?}", args.path, args.force);
 
         let mut global = Global::resolve()?;
-        let _openai = match OpenAi::detect(&global).await? {
-            Some(openai) => openai,
-            None => {
-                let token = Password::with_theme(&ColorfulTheme::default())
-                    .with_prompt("Enter your OpenAI API token")
-                    .allow_empty_password(false)
-                    .interact()?;
-                let openai = OpenAi::from_token(token).await?;
-                openai.auth.persist(&mut global)?;
-                openai
-            }
-        };
+        let auth = Auth::ensure(&mut global, AuthState::New).await?;
+        let _ = OpenAiLocalProject::select(&auth).await?;
 
         let _ = Config::init(&args.path, args.force)?;
 

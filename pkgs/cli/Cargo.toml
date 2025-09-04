@@ -23,3 +23,5 @@ xeval_project = { path = "../project" }
 xeval_global = { path = "../global" }
 xeval_openai = { path = "../openai" }
 tokio = { version = "1.40.0", features = ["rt-multi-thread", "macros"] }
+console = "0.16.0"
+indicatif = { version = "0.18.0", features = ["tokio"] }

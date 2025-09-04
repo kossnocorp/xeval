@@ -1,16 +1,18 @@
+use prelude::*;
+
+mod auth;
 mod cli;
 mod command;
+mod openai;
 mod prelude;
-use std::process::exit;
-
-use prelude::*;
+mod ui;
 
 #[tokio::main]
 async fn main() {
     match Cli::run().await {
         Ok(_) => {}
         Err(err) => {
-            eprintln!("Error: {:#}", err);
+            UiMessage::error(err);
             exit(1);
         }
     }
