@@ -2,3 +2,5 @@
 /target/
 # Node.js
 node_modules/
+# Dev Container
+/.devcontainer/state
