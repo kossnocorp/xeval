@@ -4,6 +4,10 @@
 
 set -e
 
+# Ensure mise is activated
+PATH="$HOME/.local/bin:$PATH"
+eval "$(mise activate bash --shims)"
+
 # Pull git submodules
 if [ -d .git ]; then
   git submodule update --recursive --init --remote
@@ -28,7 +32,7 @@ if [ -f ./Cargo.lock ]; then
   cargo build || echo "🟡 Cargo build failed, but that's ok"
 fi
 
-# Node.js
+# # Node.js
 if [ -f ./pnpm-lock.yaml ]; then
   yes | pnpm install
 elif [ -f ./yarn.lock ]; then
