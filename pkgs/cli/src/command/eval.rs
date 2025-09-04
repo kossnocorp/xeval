@@ -16,7 +16,7 @@ pub enum EvalError {
 pub struct EvalCmd {}
 
 impl EvalCmd {
-    pub fn run<'a>(cli: &'a Cli, args: &'a EvalArgs) -> Result<(), EvalError> {
+    pub async fn run<'a>(cli: &'a Cli, args: &'a EvalArgs) -> Result<(), EvalError> {
         println!("EVAL with watch={:?}", args.watch);
         let config = Config::find(&cli.config)?;
         println!("CONFIG {:?}", config);

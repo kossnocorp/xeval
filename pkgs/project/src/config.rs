@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use std::fs;
 
 pub const CONFIG_FILENAME: &str = "xeval.toml";
 
@@ -14,10 +15,8 @@ pub enum ConfigError {
     AlreadyExists(PathBuf),
 }
 
-#[derive(Debug, Deserialize, Default)]
-pub struct Config {
-    openai: OpenAiConfig,
-}
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Config {}
 
 impl Config {
     pub fn resolve_path(path: &PathBuf) -> PathBuf {
@@ -34,8 +33,6 @@ impl Config {
         if path.exists() && !force {
             return Err(ConfigError::AlreadyExists(path.clone()));
         }
-
-        // TODO: Authenticate with OpenAI
 
         Ok(Default::default())
     }
@@ -67,5 +64,27 @@ impl Config {
             .build()?;
 
         Ok(settings.try_deserialize::<Config>()?)
+    }
+
+    pub fn write_new(path: &PathBuf, force: bool, config: &Config) -> Result<(), ConfigError> {
+        let dest = Self::resolve_path(path);
+        if dest.exists() && !force {
+            return Err(ConfigError::AlreadyExists(dest));
+        }
+        let parent = dest
+            .parent()
+            .map(|p| p.to_path_buf())
+            .unwrap_or_else(|| PathBuf::from("."));
+        if !parent.exists() {
+            fs::create_dir_all(&parent).map_err(|e| {
+                config::ConfigError::Message(format!("Failed to create directories: {e}"))
+            })?;
+        }
+        let toml = toml::to_string_pretty(config).map_err(|e| {
+            config::ConfigError::Message(format!("Failed to serialize config: {e}"))
+        })?;
+        fs::write(&dest, toml)
+            .map_err(|e| config::ConfigError::Message(format!("Failed to write config: {e}")))?;
+        Ok(())
     }
 }

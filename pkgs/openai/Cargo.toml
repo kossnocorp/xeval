@@ -1,15 +1,11 @@
 [package]
-name = "xeval"
+name = "xeval_openai"
 version = "0.1.0"
 edition = "2024"
-description = "LLM evaluation framework"
+description = "xeval OpenAI crate"
 authors = ["Sasha Koss <koss@nocorp.me>"]
 license = "MIT"
 repository = "https://github.com/kossnocorp/xeval"
-
-[[bin]]
-name = "xeval"
-path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.99"
@@ -19,7 +15,7 @@ dialoguer = "0.12.0"
 serde = { version = "1.0.219", features = ["derive"] }
 thiserror = "2.0.16"
 toml = { version = "0.8.19", features = ["parse", "display"] }
-xeval_project = { path = "../project" }
-xeval_global = { path = "../global" }
-xeval_openai = { path = "../openai" }
-tokio = { version = "1.40.0", features = ["rt-multi-thread", "macros"] }
+dirs = "5.0.1"
+xeval_global = { version = "0.1.0", path = "../global" }
+reqwest = { version = "0.12.7", default-features = false, features = ["json", "rustls-tls"] }
+toml_edit = "0.23.4"

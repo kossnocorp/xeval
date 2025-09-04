@@ -16,11 +16,11 @@ pub enum Command {
 }
 
 impl Command {
-    pub fn run(cli: &Cli) -> Result<()> {
+    pub async fn run(cli: &Cli) -> Result<()> {
         match &cli.command {
-            Some(Command::Init(args)) => Ok(InitCmd::run(cli, args)?),
+            Some(Command::Init(args)) => Ok(InitCmd::run(cli, args).await?),
 
-            Some(Command::Eval(args)) => Ok(EvalCmd::run(cli, args)?),
+            Some(Command::Eval(args)) => Ok(EvalCmd::run(cli, args).await?),
 
             None => unreachable!("No command was provided"),
         }

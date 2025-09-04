@@ -1,10 +1,17 @@
 mod cli;
 mod command;
-mod config;
-mod openai;
 mod prelude;
+use std::process::exit;
+
 use prelude::*;
 
-fn main() -> Result<()> {
-    Cli::run()
+#[tokio::main]
+async fn main() {
+    match Cli::run().await {
+        Ok(_) => {}
+        Err(err) => {
+            eprintln!("Error: {:#}", err);
+            exit(1);
+        }
+    }
 }

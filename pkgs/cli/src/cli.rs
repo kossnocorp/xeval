@@ -14,9 +14,9 @@ pub struct Cli {
 }
 
 impl Cli {
-    pub fn run() -> Result<()> {
+    pub async fn run() -> Result<()> {
         let cli = Self::parse();
         println!("CLI config={:?}", cli.config);
-        Command::run(&cli)
+        Command::run(&cli).await
     }
 }
