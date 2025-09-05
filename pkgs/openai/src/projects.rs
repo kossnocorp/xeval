@@ -1,5 +1,14 @@
 use crate::prelude::*;
 
+#[derive(Error, Debug)]
+pub enum OpenAiProjectsError {
+    #[error("Failed to perform projects request: {0}")]
+    Request(reqwest::Error),
+
+    #[error("Failed to parse projects response: {0}")]
+    Deserialize(reqwest::Error),
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OpenAiProject {
     pub id: String,
@@ -25,7 +34,7 @@ impl OpenAi {
         after: Option<&str>,
         include_archived: bool,
         limit: Option<u32>,
-    ) -> Result<OpenAiResponseList<OpenAiProject>, OpenAiError> {
+    ) -> Result<OpenAiResponseList<OpenAiProject>, OpenAiProjectsError> {
         let client = Client::new();
         let req = client
             .get("https://api.openai.com/v1/organization/projects")
@@ -42,14 +51,14 @@ impl OpenAi {
         let resp = req
             .send()
             .await
-            .map_err(OpenAiError::ProjectsRequest)?
+            .map_err(OpenAiProjectsError::Request)?
             .error_for_status()
-            .map_err(OpenAiError::ProjectsRequest)?;
+            .map_err(OpenAiProjectsError::Request)?;
 
         let list = resp
             .json::<OpenAiResponseList<OpenAiProject>>()
             .await
-            .map_err(OpenAiError::ProjectsDeserialize)?;
+            .map_err(OpenAiProjectsError::Deserialize)?;
 
         Ok(list)
     }
@@ -57,7 +66,7 @@ impl OpenAi {
     pub async fn list_all_projects(
         &self,
         include_archived: bool,
-    ) -> Result<Vec<OpenAiProject>, OpenAiError> {
+    ) -> Result<Vec<OpenAiProject>, OpenAiProjectsError> {
         let mut all: Vec<OpenAiProject> = Vec::new();
         let mut after: Option<String> = None;
 

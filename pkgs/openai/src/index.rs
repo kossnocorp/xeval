@@ -8,11 +8,6 @@ pub enum OpenAiError {
     #[error("Failed to verify token (server responded with {0} {1})")]
     InvalidToken(String, String),
 
-    #[error("Failed to perform projects request: {0}")]
-    ProjectsRequest(reqwest::Error),
-
-    #[error("Failed to parse projects response: {0}")]
-    ProjectsDeserialize(reqwest::Error),
 }
 
 pub struct OpenAi {

@@ -1,0 +1,11 @@
+{
+  "maptz.regionfolder": {
+    "[rust]": {
+      "defaultFoldStartRegex": "//#region\\(collapsed\\)[\\s]*(.*)",
+      "foldEnd": "//#endregion",
+      "foldEndRegex": "//#endregion",
+      "foldStart": "//#region [NAME]",
+      "foldStartRegex": "//#region[\\s]*(.*)"
+    }
+  }
+}

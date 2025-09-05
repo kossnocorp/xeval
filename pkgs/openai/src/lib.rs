@@ -4,3 +4,4 @@ pub mod prelude;
 pub mod token;
 pub mod projects;
 pub mod response;
+pub mod evals;
