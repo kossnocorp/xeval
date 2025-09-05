@@ -31,9 +31,7 @@ struct OpenAiProjectsQuery<'a> {
 impl OpenAi {
     pub async fn list_projects_page(
         &self,
-        after: Option<&str>,
-        include_archived: bool,
-        limit: Option<u32>,
+        params: &OpenAiListProjectsPageRequest,
     ) -> Result<OpenAiResponseList<OpenAiProject>, OpenAiProjectsError> {
         let client = Client::new();
         let req = client
@@ -43,9 +41,9 @@ impl OpenAi {
                 format!("Bearer {}", self.auth.token()),
             )
             .query(&OpenAiProjectsQuery {
-                after,
-                include_archived,
-                limit,
+                after: params.after.as_deref(),
+                include_archived: params.include_archived,
+                limit: params.limit,
             });
 
         let resp = req
@@ -65,15 +63,19 @@ impl OpenAi {
 
     pub async fn list_all_projects(
         &self,
-        include_archived: bool,
+        params: OpenAiListAllProjectsRequest,
     ) -> Result<Vec<OpenAiProject>, OpenAiProjectsError> {
         let mut all: Vec<OpenAiProject> = Vec::new();
         let mut after: Option<String> = None;
 
         loop {
-            let page = self
-                .list_projects_page(after.as_deref(), include_archived, Some(100))
-                .await?;
+            let page_params = OpenAiListProjectsPageRequest {
+                after: after.clone(),
+                include_archived: params.include_archived,
+                limit: Some(100),
+            };
+
+            let page = self.list_projects_page(&page_params).await?;
 
             let has_more = page.has_more;
             if page.data.is_empty() {
@@ -90,4 +92,16 @@ impl OpenAi {
 
         Ok(all)
     }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct OpenAiListProjectsPageRequest {
+    pub after: Option<String>,
+    pub include_archived: bool,
+    pub limit: Option<u32>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct OpenAiListAllProjectsRequest {
+    pub include_archived: bool,
 }

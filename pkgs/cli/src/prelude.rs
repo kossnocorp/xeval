@@ -9,7 +9,7 @@ pub use dialoguer::{
     Confirm, Password,
     theme::{ColorfulTheme, Theme},
 };
-pub use indicatif::{ProgressBar, ProgressIterator};
+pub use indicatif::{ProgressBar, ProgressIterator, ProgressStyle};
 pub use serde::{Deserialize, Serialize};
 pub use thiserror::Error;
 

@@ -46,6 +46,13 @@ impl UiTheme {
     }
 
     pub fn start_spinner(message: &str) -> ProgressBar {
-        ProgressBar::no_length().with_message(message.to_string())
+        let progress = ProgressBar::new_spinner();
+        progress.set_message(message.to_string());
+        progress.enable_steady_tick(std::time::Duration::from_millis(80));
+
+        if let Ok(style) = ProgressStyle::with_template("{spinner} {msg}") {
+            progress.set_style(style);
+        }
+        progress
     }
 }

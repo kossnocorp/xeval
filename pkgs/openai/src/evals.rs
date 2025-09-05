@@ -2,7 +2,7 @@ use crate::prelude::*;
 use litty::literal;
 use ordered_float::OrderedFloat;
 use serde_json::{Map, Value};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 //#region OpenAiEval
 
@@ -35,9 +35,7 @@ pub enum OpenAiDataSourceConfig {
 pub struct OpenAiCustomDataSourceConfig {
     #[serde(rename = "type")]
     pub r#type: OpenAiCustomDataSourceConfigType,
-    pub item_schema: Value,
-    #[serde(default)]
-    pub include_sample_schema: bool,
+    pub schema: Value,
 }
 
 #[literal("custom")]
@@ -318,8 +316,11 @@ pub enum OpenAiEvalsError {
     #[error("Failed to perform evals request: {0}")]
     Request(reqwest::Error),
 
+    #[error("Failed to obtain body text: {0}")]
+    Body(reqwest::Error),
+
     #[error("Failed to parse evals response: {0}")]
-    Deserialize(reqwest::Error),
+    Deserialize(serde_json::Error),
 }
 
 #[derive(Serialize)]
@@ -337,26 +338,24 @@ struct OpenAiEvalsQuery<'a> {
 impl OpenAi {
     pub async fn list_evals_page(
         &self,
-        project: &str,
-        after: Option<&str>,
-        limit: Option<u32>,
-        order: Option<&str>,
-        order_by: Option<&str>,
+        params: &OpenAiListEvalsPageRequest,
     ) -> Result<OpenAiResponseList<OpenAiEval>, OpenAiEvalsError> {
         let client = Client::new();
-        let req = client
-            .get("https://api.openai.com/v1/evals")
-            .header(
-                header::AUTHORIZATION,
-                format!("Bearer {}", self.auth.token()),
-            )
-            .header("OpenAI-Project", project)
-            .query(&OpenAiEvalsQuery {
-                after,
-                limit,
-                order,
-                order_by,
-            });
+        let mut req = client.get("https://api.openai.com/v1/evals").header(
+            header::AUTHORIZATION,
+            format!("Bearer {}", self.auth.token()),
+        );
+
+        if let Some(project) = params.project.as_deref().filter(|p| !p.is_empty()) {
+            req = req.header("OpenAI-Project", project);
+        }
+
+        req = req.query(&OpenAiEvalsQuery {
+            after: params.after.as_deref(),
+            limit: params.limit,
+            order: params.order.as_deref(),
+            order_by: params.order_by.as_deref(),
+        });
 
         let resp = req
             .send()
@@ -365,27 +364,34 @@ impl OpenAi {
             .error_for_status()
             .map_err(OpenAiEvalsError::Request)?;
 
-        let list = resp
-            .json::<OpenAiResponseList<OpenAiEval>>()
+        let text = resp
+            .text()
             .await
-            .map_err(OpenAiEvalsError::Deserialize)?;
+            .map_err(|err| OpenAiEvalsError::Body(err))?;
+
+        let list = serde_json::from_str::<OpenAiResponseList<OpenAiEval>>(&text)
+            .map_err(|err| OpenAiEvalsError::Deserialize(err))?;
 
         Ok(list)
     }
 
     pub async fn list_all_evals(
         &self,
-        project: &str,
-        order: Option<&str>,
-        order_by: Option<&str>,
+        params: &OpenAiListAllEvalsRequest,
     ) -> Result<Vec<OpenAiEval>, OpenAiEvalsError> {
         let mut all: Vec<OpenAiEval> = Vec::new();
         let mut after: Option<String> = None;
 
         loop {
-            let page = self
-                .list_evals_page(project, after.as_deref(), Some(100), order, order_by)
-                .await?;
+            let page_params = OpenAiListEvalsPageRequest {
+                project: params.project.clone(),
+                after: after.clone(),
+                limit: Some(100),
+                order: params.order.clone(),
+                order_by: params.order_by.clone(),
+            };
+
+            let page = self.list_evals_page(&page_params).await?;
 
             let has_more = page.has_more;
             if page.data.is_empty() {
@@ -402,4 +408,20 @@ impl OpenAi {
 
         Ok(all)
     }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct OpenAiListEvalsPageRequest {
+    pub project: Option<String>,
+    pub after: Option<String>,
+    pub limit: Option<u32>,
+    pub order: Option<String>,
+    pub order_by: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct OpenAiListAllEvalsRequest {
+    pub project: Option<String>,
+    pub order: Option<String>,
+    pub order_by: Option<String>,
 }

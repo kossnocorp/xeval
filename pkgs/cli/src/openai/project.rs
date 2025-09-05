@@ -6,7 +6,10 @@ impl OpenAiLocalProject {
     pub async fn select(auth: &Auth) -> Result<()> {
         let spinner = UiTheme::start_spinner("Loading OpenAI projects");
 
-        let projects = auth.openai.list_all_projects(false).await?;
+        let projects = auth
+            .openai
+            .list_all_projects(Default::default())
+            .await?;
 
         println!("PROJECTS {:?}", projects);
 
