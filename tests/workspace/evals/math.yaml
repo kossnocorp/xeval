@@ -1,0 +1,9 @@
+name: math
+schema:
+  a: number
+  b: number
+  answer: number
+tests:
+  - type: string
+    input: "{{response.text}}"
+    eq: "{{answer}}"

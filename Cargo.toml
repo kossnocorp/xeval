@@ -1,3 +1,10 @@
 [workspace]
 resolver = "2"
-members = ["pkgs/cli", "pkgs/global", "pkgs/project", "pkgs/openai"]
+members = [
+  "pkgs/cli",
+  "pkgs/global",
+  "pkgs/project",
+  "pkgs/openai",
+  "pkgs/types",
+  "pkgs/files",
+]

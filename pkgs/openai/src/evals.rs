@@ -321,6 +321,12 @@ pub enum OpenAiEvalsError {
 
     #[error("Failed to parse evals response: {0}")]
     Deserialize(serde_json::Error),
+
+    #[error("Failed to serialize evals request: {0}")]
+    Serialize(serde_json::Error),
+
+    #[error("HTTP {0}: {1}")]
+    Http(String, String),
 }
 
 #[derive(Serialize)]
@@ -387,8 +393,8 @@ impl OpenAi {
                 project: params.project.clone(),
                 after: after.clone(),
                 limit: Some(100),
-                order: params.order.clone(),
-                order_by: params.order_by.clone(),
+                order: params.order,
+                order_by: params.order_by,
             };
 
             let page = self.list_evals_page(&page_params).await?;
@@ -415,13 +421,127 @@ pub struct OpenAiListEvalsPageRequest {
     pub project: Option<String>,
     pub after: Option<String>,
     pub limit: Option<u32>,
-    pub order: Option<String>,
-    pub order_by: Option<String>,
+    pub order: Option<&'static str>,
+    pub order_by: Option<&'static str>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct OpenAiListAllEvalsRequest {
     pub project: Option<String>,
-    pub order: Option<String>,
-    pub order_by: Option<String>,
+    pub order: Option<&'static str>,
+    pub order_by: Option<&'static str>,
+}
+
+// Upsert API
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAiEvalUpsert {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<BTreeMap<String, String>>,
+    pub data_source_config: OpenAiDataSourceConfigUpsert,
+    pub testing_criteria: Vec<OpenAiGrader>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum OpenAiDataSourceConfigUpsert {
+    Custom(OpenAiCustomDataSourceConfigUpsert),
+    Logs(OpenAiLogsDataSourceConfigUpsert),
+    StoredCompletions(OpenAiStoredCompletionsDataSourceConfigUpsert),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAiCustomDataSourceConfigUpsert {
+    #[serde(rename = "type")]
+    pub r#type: OpenAiCustomDataSourceConfigType,
+    #[serde(rename = "item_schema")]
+    pub item_schema: Value,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub include_sample_schema: Option<bool>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAiLogsDataSourceConfigUpsert {
+    #[serde(rename = "type")]
+    pub r#type: OpenAiLogsDataSourceConfigType,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<BTreeMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenAiStoredCompletionsDataSourceConfigUpsert {
+    #[serde(rename = "type")]
+    pub r#type: OpenAiStoredCompletionsDataSourceConfigType,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<BTreeMap<String, String>>,
+}
+
+impl OpenAi {
+    pub async fn create_eval(
+        &self,
+        project: Option<&str>,
+        upsert: &OpenAiEvalUpsert,
+    ) -> Result<OpenAiEval, OpenAiEvalsError> {
+        let client = Client::new();
+        let mut req = client
+            .post("https://api.openai.com/v1/evals")
+            .header(
+                header::AUTHORIZATION,
+                format!("Bearer {}", self.auth.token()),
+            )
+            .json(upsert);
+        if let Some(project) = project.filter(|p| !p.is_empty()) {
+            req = req.header("OpenAI-Project", project);
+        }
+        let resp = req.send().await.map_err(OpenAiEvalsError::Request)?;
+        let status = resp.status();
+        let text = resp.text().await.map_err(OpenAiEvalsError::Body)?;
+        if !status.is_success() {
+            return Err(OpenAiEvalsError::Http(status.as_str().to_string(), text));
+        }
+        let eval =
+            serde_json::from_str::<OpenAiEval>(&text).map_err(OpenAiEvalsError::Deserialize)?;
+        Ok(eval)
+    }
+
+    pub async fn update_eval_metadata(
+        &self,
+        project: Option<&str>,
+        eval_id: &str,
+        name: Option<&str>,
+        metadata: Option<&BTreeMap<String, String>>,
+    ) -> Result<OpenAiEval, OpenAiEvalsError> {
+        let mut body = Map::new();
+        if let Some(name) = name {
+            body.insert("name".into(), Value::String(name.to_string()));
+        }
+        if let Some(md) = metadata {
+            body.insert(
+                "metadata".into(),
+                serde_json::to_value(md).map_err(OpenAiEvalsError::Serialize)?,
+            );
+        }
+
+        let client = Client::new();
+        let mut req = client
+            .post(format!("https://api.openai.com/v1/evals/{}", eval_id))
+            .header(
+                header::AUTHORIZATION,
+                format!("Bearer {}", self.auth.token()),
+            )
+            .json(&body);
+        if let Some(project) = project.filter(|p| !p.is_empty()) {
+            req = req.header("OpenAI-Project", project);
+        }
+        let resp = req.send().await.map_err(OpenAiEvalsError::Request)?;
+        let status = resp.status();
+        let text = resp.text().await.map_err(OpenAiEvalsError::Body)?;
+        if !status.is_success() {
+            return Err(OpenAiEvalsError::Http(status.as_str().to_string(), text));
+        }
+        let eval =
+            serde_json::from_str::<OpenAiEval>(&text).map_err(OpenAiEvalsError::Deserialize)?;
+        Ok(eval)
+    }
 }

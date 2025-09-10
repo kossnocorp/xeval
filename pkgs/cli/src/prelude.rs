@@ -6,7 +6,7 @@ pub use anyhow::{Context, Result};
 pub use clap::Parser;
 pub use console::{StyledObject, style};
 pub use dialoguer::{
-    Confirm, Password,
+    Confirm, Password, Input,
     theme::{ColorfulTheme, Theme},
 };
 pub use indicatif::{ProgressBar, ProgressIterator, ProgressStyle};

@@ -37,14 +37,19 @@ pub struct InitArgs {
 pub struct InitCmd {}
 
 impl InitCmd {
-    pub async fn run<'a>(_cli: &'a Cli, args: &'a InitArgs) -> Result<(), InitError> {
-        println!("INIT with path={:?}, force={:?}", args.path, args.force);
-
+    pub async fn run<'a>(cli: &'a Cli, args: &'a InitArgs) -> Result<(), InitError> {
         let mut global = Global::resolve()?;
-        let auth = Auth::ensure(&mut global, AuthState::New).await?;
-        let _ = OpenAiLocalProject::select(&auth).await?;
+        let _ = Auth::ensure(&mut global, AuthState::New).await?;
 
-        let _ = Config::init(&args.path, args.force)?;
+        let evals_glob = UiConfig::inquire_evals_glob()?;
+
+        let mut config = Config::init(&args.path, args.force)?;
+        config.evals = evals_glob;
+
+        let config_path = cli.config.clone();
+        let project = Project {};
+
+        Config::write_new(&args.path, args.force, &config)?;
 
         Ok(())
     }

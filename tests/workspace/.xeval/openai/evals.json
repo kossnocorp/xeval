@@ -1,0 +1,570 @@
+{
+  "updated_at": 1757318809,
+  "evals": [
+    {
+      "object": "eval",
+      "id": "eval_68be7a0ea1008191b9523773cdfcc1a1",
+      "name": "math",
+      "created_at": 1757313550,
+      "metadata": {
+        "xeval_hash": "20792b6357eb2db34940941699e1925a1a11df2a3f660114abf80ecf5b92312f",
+        "xeval_name": "math"
+      },
+      "data_source_config": {
+        "type": "custom",
+        "schema": {
+          "properties": {
+            "item": {
+              "properties": {
+                "a": {
+                  "type": "number"
+                },
+                "answer": {
+                  "type": "number"
+                },
+                "b": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "a",
+                "answer",
+                "b"
+              ],
+              "type": "object"
+            },
+            "sample": {
+              "properties": {
+                "choices": {
+                  "items": {
+                    "properties": {
+                      "finish_reason": {
+                        "type": "string"
+                      },
+                      "message": {
+                        "properties": {
+                          "content": {
+                            "type": [
+                              "string",
+                              "array",
+                              "null"
+                            ]
+                          },
+                          "function_call": {
+                            "properties": {
+                              "arguments": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "arguments"
+                            ],
+                            "type": [
+                              "object",
+                              "null"
+                            ]
+                          },
+                          "refusal": {
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "role": {
+                            "enum": [
+                              "assistant"
+                            ],
+                            "type": "string"
+                          },
+                          "tool_calls": {
+                            "items": {
+                              "properties": {
+                                "function": {
+                                  "properties": {
+                                    "arguments": {
+                                      "type": "string"
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "arguments"
+                                  ],
+                                  "type": "object"
+                                },
+                                "id": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "enum": [
+                                    "function"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "function",
+                                "id"
+                              ],
+                              "type": "object"
+                            },
+                            "type": [
+                              "array",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "role"
+                        ],
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "index",
+                      "message",
+                      "finish_reason"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "input_tools": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "model": {
+                  "type": "string"
+                },
+                "output_audio": {
+                  "type": [
+                    "object",
+                    "null"
+                  ]
+                },
+                "output_json": {
+                  "type": "object"
+                },
+                "output_reasoning_summary": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "output_text": {
+                  "type": "string"
+                },
+                "output_tools": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "model",
+                "choices"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "item",
+            "sample"
+          ],
+          "type": "object"
+        }
+      },
+      "testing_criteria": [
+        {
+          "type": "string_check",
+          "name": "String check grader",
+          "operation": "eq",
+          "input": "{{sample.output_text}}",
+          "reference": "{{item.answer}}"
+        }
+      ]
+    },
+    {
+      "object": "eval",
+      "id": "eval_68b7cb2eb2e88191a465f3be121707e1",
+      "name": "Prompt Eval",
+      "created_at": 1756875566,
+      "metadata": {},
+      "data_source_config": {
+        "type": "custom",
+        "schema": {
+          "properties": {
+            "item": {
+              "properties": {
+                "ground_truth": {
+                  "type": "string"
+                },
+                "input": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "input",
+                "ground_truth"
+              ],
+              "type": "object"
+            },
+            "sample": {
+              "properties": {
+                "choices": {
+                  "items": {
+                    "properties": {
+                      "finish_reason": {
+                        "type": "string"
+                      },
+                      "message": {
+                        "properties": {
+                          "content": {
+                            "type": [
+                              "string",
+                              "array",
+                              "null"
+                            ]
+                          },
+                          "function_call": {
+                            "properties": {
+                              "arguments": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "arguments"
+                            ],
+                            "type": [
+                              "object",
+                              "null"
+                            ]
+                          },
+                          "refusal": {
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "role": {
+                            "enum": [
+                              "assistant"
+                            ],
+                            "type": "string"
+                          },
+                          "tool_calls": {
+                            "items": {
+                              "properties": {
+                                "function": {
+                                  "properties": {
+                                    "arguments": {
+                                      "type": "string"
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "arguments"
+                                  ],
+                                  "type": "object"
+                                },
+                                "id": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "enum": [
+                                    "function"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "function",
+                                "id"
+                              ],
+                              "type": "object"
+                            },
+                            "type": [
+                              "array",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "role"
+                        ],
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "index",
+                      "message",
+                      "finish_reason"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "input_tools": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "model": {
+                  "type": "string"
+                },
+                "output_audio": {
+                  "type": [
+                    "object",
+                    "null"
+                  ]
+                },
+                "output_json": {
+                  "type": "object"
+                },
+                "output_reasoning_summary": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "output_text": {
+                  "type": "string"
+                },
+                "output_tools": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "model",
+                "choices"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "item",
+            "sample"
+          ],
+          "type": "object"
+        }
+      },
+      "testing_criteria": [
+        {
+          "type": "string_check",
+          "name": "String check grader",
+          "operation": "eq",
+          "input": "{{sample.output_text}}",
+          "reference": "{{item.ground_truth}}"
+        }
+      ]
+    },
+    {
+      "object": "eval",
+      "id": "eval_68b7cb0dbcb48191b88239ab05f30a15",
+      "name": "Prompt Eval",
+      "created_at": 1756875533,
+      "metadata": {},
+      "data_source_config": {
+        "type": "custom",
+        "schema": {
+          "properties": {
+            "item": {
+              "properties": {
+                "ground_truth": {
+                  "type": "string"
+                },
+                "input": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "input",
+                "ground_truth"
+              ],
+              "type": "object"
+            },
+            "sample": {
+              "properties": {
+                "choices": {
+                  "items": {
+                    "properties": {
+                      "finish_reason": {
+                        "type": "string"
+                      },
+                      "message": {
+                        "properties": {
+                          "content": {
+                            "type": [
+                              "string",
+                              "array",
+                              "null"
+                            ]
+                          },
+                          "function_call": {
+                            "properties": {
+                              "arguments": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "arguments"
+                            ],
+                            "type": [
+                              "object",
+                              "null"
+                            ]
+                          },
+                          "refusal": {
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "role": {
+                            "enum": [
+                              "assistant"
+                            ],
+                            "type": "string"
+                          },
+                          "tool_calls": {
+                            "items": {
+                              "properties": {
+                                "function": {
+                                  "properties": {
+                                    "arguments": {
+                                      "type": "string"
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "arguments"
+                                  ],
+                                  "type": "object"
+                                },
+                                "id": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "enum": [
+                                    "function"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "function",
+                                "id"
+                              ],
+                              "type": "object"
+                            },
+                            "type": [
+                              "array",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "role"
+                        ],
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "index",
+                      "message",
+                      "finish_reason"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "input_tools": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "model": {
+                  "type": "string"
+                },
+                "output_audio": {
+                  "type": [
+                    "object",
+                    "null"
+                  ]
+                },
+                "output_json": {
+                  "type": "object"
+                },
+                "output_reasoning_summary": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "output_text": {
+                  "type": "string"
+                },
+                "output_tools": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "model",
+                "choices"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "item",
+            "sample"
+          ],
+          "type": "object"
+        }
+      },
+      "testing_criteria": [
+        {
+          "type": "string_check",
+          "name": "String check grader",
+          "operation": "eq",
+          "input": "{{sample.output_text}}",
+          "reference": "{{item.ground_truth}}"
+        }
+      ]
+    }
+  ]
+}

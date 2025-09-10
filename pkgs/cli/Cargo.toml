@@ -25,3 +25,7 @@ xeval_openai = { path = "../openai" }
 tokio = { version = "1.40.0", features = ["rt-multi-thread", "macros"] }
 console = "0.16.0"
 indicatif = { version = "0.18.0", features = ["tokio"] }
+xeval_files = { path = "../files" }
+xeval_types = { path = "../types" }
+sha2 = "0.10.8"
+serde_json = "1.0.132"

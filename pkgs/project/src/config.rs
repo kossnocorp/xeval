@@ -3,6 +3,8 @@ use std::fs;
 
 pub const CONFIG_FILENAME: &str = "xeval.toml";
 
+pub const DEFAULT_EVALS_GLOB: &str = "./evals/**/*.yaml";
+
 #[derive(Error, Debug)]
 pub enum ConfigError {
     #[error("Failed to find config file at {0}")]
@@ -15,8 +17,20 @@ pub enum ConfigError {
     AlreadyExists(PathBuf),
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct Config {}
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Config {
+    /// Glob pattern to find eval YAML files
+    #[serde(default = "Config::default_evals_glob")]
+    pub evals: String,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            evals: Self::default_evals_glob(),
+        }
+    }
+}
 
 impl Config {
     pub fn resolve_path(path: &PathBuf) -> PathBuf {
@@ -38,23 +52,30 @@ impl Config {
     }
 
     pub fn find(path: &Option<PathBuf>) -> Result<Config, ConfigError> {
-        let path: PathBuf = path.clone().unwrap_or_else(|| ".".into());
-
-        let mut current = if path.is_dir() {
-            Some(path.as_path())
-        } else {
-            path.parent()
-        };
-
-        while let Some(dir) = current {
-            let file = dir.join(CONFIG_FILENAME);
-            if file.is_file() {
-                return Self::read(file);
+        match path {
+            // Strict mode: if caller passed a path, don't walk up — use it directly
+            Some(p) => {
+                if p.is_dir() {
+                    let file = Self::resolve_path(p);
+                    return Self::read(file);
+                } else {
+                    return Self::read(p.clone());
+                }
             }
-            current = dir.parent();
+            None => {
+                // Legacy behavior: search upwards from current directory
+                let path: PathBuf = ".".into();
+                let mut current = Some(path.as_path());
+                while let Some(dir) = current {
+                    let file = dir.join(CONFIG_FILENAME);
+                    if file.is_file() {
+                        return Self::read(file);
+                    }
+                    current = dir.parent();
+                }
+                Err(ConfigError::NotFound(path))
+            }
         }
-
-        Err(ConfigError::NotFound(path.clone()))
     }
 
     fn read(path: PathBuf) -> Result<Config, ConfigError> {
@@ -64,6 +85,15 @@ impl Config {
             .build()?;
 
         Ok(settings.try_deserialize::<Config>()?)
+    }
+
+    pub fn write(&self, project: &Project) -> Result<(), ConfigError> {
+        let toml = toml::to_string_pretty(self).map_err(|e| {
+            config::ConfigError::Message(format!("Failed to serialize config: {e}"))
+        })?;
+        fs::write(&project.get_config_path(), toml)
+            .map_err(|e| config::ConfigError::Message(format!("Failed to write config: {e}")))?;
+        Ok(())
     }
 
     pub fn write_new(path: &PathBuf, force: bool, config: &Config) -> Result<(), ConfigError> {
@@ -86,5 +116,18 @@ impl Config {
         fs::write(&dest, toml)
             .map_err(|e| config::ConfigError::Message(format!("Failed to write config: {e}")))?;
         Ok(())
+    }
+
+    pub fn default_evals_glob() -> String {
+        DEFAULT_EVALS_GLOB.to_string()
+    }
+}
+
+impl Project {
+    fn get_config_path(&self) -> PathBuf {
+        match self.config_path {
+            Some(ref path) => path.clone(),
+            None => self.path.join(CONFIG_FILENAME),
+        }
     }
 }
