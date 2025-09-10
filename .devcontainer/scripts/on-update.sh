@@ -4,6 +4,9 @@
 
 set -e
 
+# Make sure mise is activated
+eval "$(mise activate bash --shims)"
+
 # Ensure mise is activated
 PATH="$HOME/.local/bin:$PATH"
 eval "$(mise activate bash --shims)"
